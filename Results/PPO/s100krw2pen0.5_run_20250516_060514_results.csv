@@ -1,0 +1,8 @@
+track,completion_rate,avg_steps,avg_progress,avg_velocity,avg_distance,avg_reward
+cocoa_temple,0.0,1000.0,0.25980000000000003,8.21,376.16,413.99
+cornfield_crossing,0.0,1000.0,0.0155,8.96,19.58,243.52
+hacienda,0.0,1000.0,0.0152,9.49,17.78,285.06
+lighthouse,0.0,1000.0,0.0165,0.65,14.52,332.87
+scotland,0.0,1000.0,0.8904000000000001,0.23,1183.05,647.66
+snowtuxpeak,0.0,1000.0,0.6768000000000001,0.9,671.77,535.0
+zengarden,0.0,1000.0,0.455,2.94,323.26,472.52

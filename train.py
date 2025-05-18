@@ -1,4 +1,4 @@
-from planner import Planner, save_model 
+from planner import Planner, save_model
 import torch
 import torch.utils.tensorboard as tb
 import numpy as np
@@ -7,23 +7,25 @@ import dense_transforms
 
 def train(args):
     from os import path
+    
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+        print(f"Using CUDA GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        device = torch.device('cpu')
+        print("Using CPU - WARNING: Training will be slow!")
+    
     model = Planner()
+    model = model.to(device)
+    print(f"Model moved to {device}")
+    
     train_logger, valid_logger = None, None
     if args.log_dir is not None:
         train_logger = tb.SummaryWriter(path.join(args.log_dir, 'train'))
-
-    """
-    Your code here, modify your HW4 code
     
-    """
-    import torch
-
-    device = torch.device('mps') if torch.backends.mps.is_available() else torch.device('cpu')
-	
-    print("device:", device)
-    model = model.to(device)
     if args.continue_training:
-        model.load_state_dict(torch.load(path.join(path.dirname(path.abspath(__file__)), 'planner.th')))
+        model.load_state_dict(torch.load(path.join(path.dirname(path.abspath(__file__)), 'planner.th'), 
+                                        map_location=device))
 
     loss = torch.nn.L1Loss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
@@ -60,8 +62,6 @@ def train(args):
             print('epoch %-3d \t loss = %0.3f' % (epoch, avg_loss))
         save_model(model)
 
-    save_model(model)
-
 def log(logger, img, label, pred, global_step):
     """
     logger: train_logger/valid_logger
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--log_dir')
     # Put custom arguments here
-    parser.add_argument('-n', '--num_epoch', type=int, default=30)
+    parser.add_argument('-n', '--num_epoch', type=int, default=100)
     parser.add_argument('-w', '--num_workers', type=int, default=4)
     parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3)
     parser.add_argument('-c', '--continue_training', action='store_true')

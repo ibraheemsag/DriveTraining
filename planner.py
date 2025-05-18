@@ -15,12 +15,57 @@ def spatial_argmax(logit):
 
 class Planner(torch.nn.Module):
     def __init__(self):
-
-      super().__init__()
-
-      layers = []
-
-      self._conv = torch.nn.Sequential(*layers)
+        super().__init__()
+        
+        # Create a direct CNN architecture instead of using ResNet50
+        print("Creating custom CNN planner...")
+        
+        # Input shape: (B, 3, 96, 128)
+        self.cnn = torch.nn.Sequential(
+            # First block - reduce dimensions to half
+            torch.nn.Conv2d(3, 32, kernel_size=5, stride=2, padding=2),
+            torch.nn.BatchNorm2d(32),
+            torch.nn.ReLU(),
+            # 32x48x64
+            
+            # Second block - reduce dimensions to 1/4
+            torch.nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
+            torch.nn.BatchNorm2d(64),
+            torch.nn.ReLU(),
+            # 64x24x32
+            
+            # Third block
+            torch.nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+            torch.nn.BatchNorm2d(128),
+            torch.nn.ReLU(),
+            # 128x24x32
+            
+            # Fourth block - reduce dimensions to 1/8
+            torch.nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
+            torch.nn.BatchNorm2d(256),
+            torch.nn.ReLU(),
+            # 256x12x16
+            
+            # Fifth block
+            torch.nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            torch.nn.BatchNorm2d(256),
+            torch.nn.ReLU(),
+            # 256x12x16
+            
+            # Final layers to produce heatmap
+            torch.nn.Conv2d(256, 128, kernel_size=1),
+            torch.nn.BatchNorm2d(128),
+            torch.nn.ReLU(),
+            
+            torch.nn.Conv2d(128, 64, kernel_size=3, padding=1),
+            torch.nn.BatchNorm2d(64),
+            torch.nn.ReLU(),
+            
+            torch.nn.Conv2d(64, 1, kernel_size=1)
+            # Output: 1x12x16 heatmap for spatial_argmax
+        )
+        
+        print("Custom CNN planner created successfully")
 
     def forward(self, img):
         """
@@ -29,11 +74,11 @@ class Planner(torch.nn.Module):
         @img: (B,3,96,128)
         return (B,2)
         """
-        x = self._conv(img)
-        #print(img.shape)
-        #print(x.shape)
+        # Pass input directly through CNN
+        x = self.cnn(img)
+        
+        # Apply spatial argmax to get coordinates
         return spatial_argmax(x[:, 0])
-        # return self.classifier(x.mean(dim=[-2, -1]))
 
 
 def save_model(model):

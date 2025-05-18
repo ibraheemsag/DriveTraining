@@ -5,18 +5,27 @@ import numpy as np
 def control(aim_point, current_vel, steer_gain=6, skid_thresh=0.2, target_vel=25):
     #this seems to initialize an object
     action = pystk.Action()
-    action.steer = aim_point[0]/3
+    steer_const = 1
+    accel_const = 3
+    drift_const = 0.25
+    if aim_point[0] < 0:
+        action.steer = -1 * steer_const
+    else:
+        action.steer = steer_const
 
     if current_vel < target_vel:
-        action.acceleration = 1
+        action.acceleration = min(1, accel_const * (1 - (current_vel/target_vel)))
+        if current_vel - target_vel < -5.5:
+            action.nitro = True
+    
     else:
+        action.nitro = False
         action.acceleration = 0
         action.brake = True
-    if aim_point[0] < -0.8:
+    if aim_point[0] < -1 * drift_const:
         action.drift = True
-    if aim_point[0] > 0.8:
-        action.nitro = True
-    
+    if aim_point[0] > drift_const:
+        action.drift = True
 
 
         

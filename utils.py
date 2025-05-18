@@ -39,12 +39,20 @@ def load_data(dataset_path=DATASET_PATH, transform=dense_transforms.ToTensor(), 
 class PyTux:
     _singleton = None
 
-    def __init__(self, screen_width=128, screen_height=96):
-        assert PyTux._singleton is None, "Cannot create more than one pytux object"
-        PyTux._singleton = self
-        self.config = pystk.GraphicsConfig.hd()
-        self.config.screen_width = screen_width
-        self.config.screen_height = screen_height
+    def __init__(self, screen_width=128, screen_height=96, force_singleton=False, render_mode="rgb_array", quality="ld"):
+        # For backwards compatibility, keep singleton check but make it optional
+        if force_singleton:
+            assert PyTux._singleton is None, "Cannot create more than one pytux object when force_singleton=True"
+            PyTux._singleton = self
+        if render_mode == "rgb_array":
+            if quality == "ld":
+                self.config = pystk.GraphicsConfig.ld()
+            else:
+                self.config = pystk.GraphicsConfig.hd()
+            self.config.screen_width = screen_width
+            self.config.screen_height = screen_height
+        else: 
+            self.config = pystk.GraphicsConfig.hd().none()
         pystk.init(self.config)
         self.k = None
 
